@@ -8,7 +8,7 @@ def get_args():
     arg.add_argument('-margin', type=float, default=5.0)
     arg.add_argument('-neg_mode', type=str, default='img', choices=['img', 'ent', 'normal', 'hybrid', 'adaptive'])
     arg.add_argument('-train_mode', type=str, default='normal', choices=['normal', 'adp'])
-    arg.add_argument('-epoch', type=int, default=100)
+    arg.add_argument('-epoch', type=int, default=10)
     arg.add_argument('-save', type=str)
     arg.add_argument('-test_mode', type=str, default='lp')
     arg.add_argument('-img_dim', type=int, default=4096)
