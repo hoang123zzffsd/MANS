@@ -12,7 +12,7 @@ if __name__ == "__main__":
     print(args)
     # dataloader for training
     train_dataloader = TrainDataLoader(
-        in_path="./benchmarks/" + args.dataset + '/',
+        in_path="/content/MANS/benchmarks/" + args.dataset + '/',
         nbatches=args.num_batch,
         threads=8,
         # 当dismult的时候是cross
@@ -24,8 +24,8 @@ if __name__ == "__main__":
     )
 
     # dataloader for test
-    test_dataloader = TestDataLoader("./benchmarks/" + args.dataset + '/', "link")
-    img_emb = torch.load('./visual/' + args.dataset + '.pth')
+    test_dataloader = TestDataLoader("/content/MANS/benchmarks/" + args.dataset + '/', "link")
+    img_emb = torch.load('/content/MANS/visual/' + args.dataset + '.pth')
     if args.kernel == 'transe':
         # define the model
         transe = MMTransE(
