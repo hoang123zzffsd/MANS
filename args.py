@@ -13,7 +13,7 @@ def get_args():
     arg.add_argument('-test_mode', type=str, default='lp')
     arg.add_argument('-img_dim', type=int, default=4096)
     arg.add_argument('-img_grad', type=bool, default=False)
-    arg.add_argument('-kernel', type=str, default='transe', required=True, choices=['transe', 'dismult', 'rotate','transh',transr'])
+    arg.add_argument('-kernel', type=str, default='transe', required=True, choices=['transe', 'dismult', 'rotate','transh','transr'])
     arg.add_argument('-neg_num', type=int, default=1)
     arg.add_argument('-loss_type', type=str, default='normal', choices=['normal', 'adv'])
     arg.add_argument('-learning_rate', type=float, default=0.1)
