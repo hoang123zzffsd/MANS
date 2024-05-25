@@ -28,7 +28,7 @@ if __name__ == "__main__":
     img_emb = torch.load('/content/MANS/visual/' + args.dataset + '.pth')
     if args.kernel == 'transe':
         # define the model
-        transe = MMTransE(
+        rotate = MMRotatE(
             ent_tot=train_dataloader.get_ent_tot(),
             rel_tot=train_dataloader.get_rel_tot(),
             dim=128,
@@ -39,10 +39,10 @@ if __name__ == "__main__":
             test_mode=args.test_mode,
             beta=args.beta
         )
-        print(transe)
+        print(rotate)
         # define the loss function
         model = NegativeSampling(
-            model=transe,
+            model=rotate,
             loss=MarginLoss(margin=args.margin),
             batch_size=train_dataloader.get_batch_size(),
             neg_mode=args.neg_mode
@@ -62,7 +62,7 @@ if __name__ == "__main__":
         transe.save_checkpoint(args.save)
         # test the model
         transe.load_checkpoint(args.save)
-        tester = Tester(model=transe, data_loader=test_dataloader, use_gpu=True)
+        tester = Tester(model=rotate, data_loader=test_dataloader, use_gpu=True)
         # link prediction task
         tester.run_link_prediction(type_constrain=False)
         # triple classification task
