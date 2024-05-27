@@ -59,9 +59,9 @@ if __name__ == "__main__":
             train_mode=args.train_mode
         )
         trainer.run()
-        transe.save_checkpoint(args.save)
+        rotate.save_checkpoint(args.save)
         # test the model
-        transe.load_checkpoint(args.save)
+        rotate.load_checkpoint(args.save)
         tester = Tester(model=rotate, data_loader=test_dataloader, use_gpu=True)
         # link prediction task
         tester.run_link_prediction(type_constrain=False)
