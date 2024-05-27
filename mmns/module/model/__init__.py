@@ -6,10 +6,12 @@ from .Model import Model
 from .TransE import TransE
 from .RotatE import RotatE
 from .MMTransE import MMTransE
+from .MMRotatE import MMRotatE
 
 __all__ = [
     'Model',
     'TransE',
     'RotatE',
-    'MMTransE'
+    'MMTransE',
+    'MMRotatE'
 ]
