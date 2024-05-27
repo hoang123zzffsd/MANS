@@ -32,7 +32,7 @@ if __name__ == "__main__":
             ent_tot=train_dataloader.get_ent_tot(),
             rel_tot=train_dataloader.get_rel_tot(),
             dim=128,
-            p_norm=1,
+        
             norm_flag=True,
             img_dim=args.img_dim,
             img_emb=img_emb,
