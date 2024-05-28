@@ -175,6 +175,7 @@ class MMRotatE(Model):
             score = self.cross_modal_score_ent2img(data)
         else:
             score = self.forward(data, batch_size=None, neg_mode='normal')
+	score=self.margin-score
         return score.cpu().data.numpy()
 
 
