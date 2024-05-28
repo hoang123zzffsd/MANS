@@ -63,6 +63,8 @@ class MMTransH(Model):
         return emb - torch.sum(emb * norm, dim=-1, keepdim=True) * norm
 
     def _calc(self, h, t, r, mode):
+        h = self._project(h, norm)
+        t = self._project(t, norm)
         if self.norm_flag:
             h = F.normalize(h, 2, -1)
             r = F.normalize(r, 2, -1)
