@@ -7,7 +7,7 @@ from .Model import Model
 class MMRotatE(Model):
 
     def __init__(self, ent_tot, rel_tot, dim=100, img_emb=None, img_dim=4096,
-                 margin=6.0, epsilon=2.0, test_mode='lp', beta=None):
+                 margin=5.0, epsilon=2.0, test_mode='lp', beta=None):
         super(MMRotatE, self).__init__(ent_tot, rel_tot)
 
 
