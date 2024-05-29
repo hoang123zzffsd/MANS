@@ -12,7 +12,7 @@ if __name__ == "__main__":
     print(args)
     # dataloader for training
     train_dataloader = TrainDataLoader(
-        in_path="/content/MANS/benchmarks/" + args.dataset + '/',
+        in_path="/content/MANS/benchmarks/" + args.dataset + '-visual/',
         nbatches=args.num_batch,
         threads=8,
         # 当dismult的时候是cross
@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
     # dataloader for test
     test_dataloader = TestDataLoader("/content/MANS/benchmarks/" + args.dataset + '/', "link")
-    img_emb = torch.load('/content/MANS/visual/' + args.dataset + '.pth')
+    img_emb = torch.load('/content/MANS/visual/' + args.dataset + '-visual.pth')
     if args.kernel == 'rotate':
         # define the model
         rotate = MMRotatE(
