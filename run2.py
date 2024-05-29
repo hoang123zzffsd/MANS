@@ -12,7 +12,7 @@ if __name__ == "__main__":
     print(args)
     # dataloader for training
     train_dataloader = TrainDataLoader(
-        in_path="/content/MANS/benchmarks/" + args.dataset + '-visual/',
+        in_path="/content/MANS/benchmarks/" + args.dataset + '/',
         nbatches=args.num_batch,
         threads=8,
         # 当dismult的时候是cross
