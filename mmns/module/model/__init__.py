@@ -14,5 +14,6 @@ __all__ = [
     'RotatE',
     'MMTransE',
     'MMRotatE',
-    'MMTransH'
+    'MMTransH',
+    'MMRotatE_test'
 ]
