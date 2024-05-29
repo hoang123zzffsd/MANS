@@ -24,28 +24,24 @@ class MMRotatE(Model):
         self.ent_embeddings = nn.Embedding(self.ent_tot, self.dim_e)
         self.rel_embeddings = nn.Embedding(self.rel_tot, self.dim_r)
         self.img_proj = nn.Linear(self.img_dim, self.dim_e)
-        self.img_embeddings = img_emb
-        self.img_embeddings.requires_grad = False
+        self.img_embeddings = nn.Embedding.from_pretrained(img_emb).requires_grad_(False)
         self.beta = beta
 
-        if margin is None or epsilon is None:
-            nn.init.xavier_uniform_(self.ent_embeddings.weight.data)
-            nn.init.xavier_uniform_(self.rel_embeddings.weight.data)
-        else:
-            self.ent_embedding_range = nn.Parameter(
+        
+        self.ent_embedding_range = nn.Parameter(
 			torch.Tensor([(self.margin + self.epsilon) / self.dim_e]), 
 			requires_grad=False
 		    )
-            nn.init.uniform_(
+        nn.init.uniform_(
 			tensor = self.ent_embeddings.weight.data, 
 			a=-self.ent_embedding_range.item(), 
 			b=self.ent_embedding_range.item()
 		)
-            self.rel_embedding_range = nn.Parameter(
+        self.rel_embedding_range = nn.Parameter(
 			torch.Tensor([(self.margin + self.epsilon) / self.dim_r]), 
 			requires_grad=False
 		)
-            nn.init.uniform_(
+        nn.init.uniform_(
 			tensor = self.rel_embeddings.weight.data, 
 			a=-self.rel_embedding_range.item(), 
 			b=self.rel_embedding_range.item()
@@ -143,6 +139,7 @@ class MMRotatE(Model):
                 + self._calc(h, t_img_emb, r, mode)
         )
         return score
+        
 
     def regularization(self, data):
         batch_h = data['batch_h']
@@ -172,10 +169,10 @@ class MMRotatE(Model):
  
     def predict(self, data):
         if self.test_mode == 'cmlp':
-            score = self.cross_modal_score_ent2img(data)
+            score = -self.cross_modal_score_ent2img(data)
         else:
-            score = self.forward(data, batch_size=None, neg_mode='normal')
-        score=self.margin-score
+            score = -self.forward(data, batch_size=None, neg_mode='normal')
+
         return score.cpu().data.numpy()
 
 
