@@ -24,7 +24,9 @@ class MMRotatE(Model):
         self.ent_embeddings = nn.Embedding(self.ent_tot, self.dim_e)
         self.rel_embeddings = nn.Embedding(self.rel_tot, self.dim_r)
         self.img_proj = nn.Linear(self.img_dim, self.dim_e)
-        self.img_embeddings = nn.Embedding.from_pretrained(img_emb).requires_grad_(False)
+        # self.img_embeddings = nn.Embedding.from_pretrained(img_emb).requires_grad_(False)
+	self.img_embeddings = img_emb
+        self.img_embeddings.requires_grad = False
         self.beta = beta
 
         
