@@ -7,6 +7,8 @@ from .TransE import TransE
 from .RotatE import RotatE
 from .MMTransE import MMTransE
 from .MMRotatE import MMRotatE
+from .MMTransH import MMTransH
+from .MMTransR import MMTransR
 
 __all__ = [
     'Model',
@@ -15,5 +17,6 @@ __all__ = [
     'MMTransE',
     'MMRotatE',
     'MMTransH',
-    'MMRotatE_test'
+    'MMRotatE_test',
+    'MMTransR'
 ]
