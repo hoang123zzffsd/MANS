@@ -97,11 +97,16 @@ class MMTransH(Model):
             r_neg = batch_r[batch_size:].detach()
             h_neg = self.ent_embeddings(h_img_neg)
             t_neg = self.ent_embeddings(t_img_neg)
+            r_neg = self.rel_embeddings(r_neg)
+
+
             h_neg = self._project(h_neg, self.norm_vector(r_neg))
             t_neg = self._project(t_neg, self.norm_vector(r_neg))
-            r_neg = self.rel_embeddings(r_neg)
+            
+
             h_img_ent_emb = self.img_proj(self.img_embeddings(h_img_neg))
             t_img_ent_emb = self.img_proj(self.img_embeddings(t_img_neg))
+            
             h_img_ent_emb = self._project(h_img_ent_emb, self.norm_vector(r_neg))
             t_img_ent_emb = self._project(t_img_ent_emb, self.norm_vector(r_neg))
             neg_score1 = self._calc(h_neg, t_neg, r_neg, mode) + self._calc(h_img_ent_emb, t_img_ent_emb, r_neg, mode)
@@ -174,3 +179,27 @@ class MMTransH(Model):
         h_ent, h_img, t_ent, t_img = batch_h, batch_h, batch_t, batch_t
         mode = data['mode']
         h = self.ent_embeddings(h_ent)
+
+
+
+    def get_rel_rank(self, data):
+        head, tail, rel = data
+        h_img_emb = self.img_proj(self.img_embeddings(head))
+        t_img_emb = self.img_proj(self.img_embeddings(tail))
+        relations = self.rel_embeddings.weight
+        h = h_img_emb.reshape(-1, h_img_emb.shape[0]).expand((relations.shape[0], h_img_emb.shape[0]))
+        t = t_img_emb.reshape(-1, t_img_emb.shape[0]).expand((relations.shape[0], t_img_emb.shape[0]))
+        scores = self._calc(h, t, relations, mode='normal')
+        ranks = torch.argsort(scores)
+        rank = 0
+        for (index, val) in enumerate(ranks):
+            if val.item() == rel.item():
+                rank = index
+                break
+        return rank + 1
+    
+    def get_entity_embs(self, index):
+        index = torch.LongTensor(index)
+        structural_embs = self.ent_embeddings(index)
+        visual_embs = self.img_proj(self.img_embeddings(index))
+        return structural_embs, visual_embs
