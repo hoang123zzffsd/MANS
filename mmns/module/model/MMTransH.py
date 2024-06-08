@@ -189,3 +189,15 @@ class MMTransH(Model):
         structural_embs = self.ent_embeddings(index)
         visual_embs = self.img_proj(self.img_embeddings(index))
         return structural_embs, visual_embs
+
+    
+    def predict(self, data):
+        if self.test_mode == 'cmlp':
+            score = self.cross_modal_score_ent2img(data)
+        else:
+            score = self.forward(data, batch_size=None, neg_mode='normal')
+        if self.margin_flag:
+            score = self.margin - score
+            return score.cpu().data.numpy()
+        else:
+            return score.cpu().data.numpy()
