@@ -1,12 +1,9 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import time
 from .Model import Model
 
-
 class MMTransH(Model):
-
     def __init__(self, ent_tot, rel_tot, dim=100, p_norm=1, img_emb=None,
                  img_dim=4096, norm_flag=True, margin=None, epsilon=None,
                  test_mode='lp', beta=None):
@@ -22,7 +19,7 @@ class MMTransH(Model):
 
         self.ent_embeddings = nn.Embedding(self.ent_tot, self.dim)
         self.rel_embeddings = nn.Embedding(self.rel_tot, self.dim)
-        self.norm_vector = nn.Embedding(self.rel_tot, self.dim)  # norm vector for each relation
+        self.norm_vector = nn.Embedding(self.rel_tot, self.dim)  # Vector pháp tuyến cho mỗi quan hệ
         self.img_proj = nn.Linear(self.img_dim, self.dim)
         self.img_embeddings = img_emb
         self.img_embeddings.requires_grad = False
@@ -58,17 +55,17 @@ class MMTransH(Model):
         else:
             self.margin_flag = False
 
-    def _project(self, emb, norm):
-        norm = F.normalize(norm, p=2, dim=-1)
-        return emb - torch.sum(emb * norm, dim=-1, keepdim=True) * norm
+    def _project(self, e, n):
+        n = F.normalize(n, p=2, dim=-1)  # Chuẩn hóa vector pháp tuyến
+        return e - torch.sum(e * n, dim=-1, keepdim=True) * n  # Chiếu e lên hyperplane xác định bởi n
 
-    def _calc(self, h, t, r, mode):
+    def _calc(self, h, t, r, norm, mode):
         h = self._project(h, norm)
         t = self._project(t, norm)
         if self.norm_flag:
-            h = F.normalize(h, 2, -1)
-            r = F.normalize(r, 2, -1)
-            t = F.normalize(t, 2, -1)
+            h = F.normalize(h, p=2, dim=-1)
+            r = F.normalize(r, p=2, dim=-1)
+            t = F.normalize(t, p=2, dim=-1)
         if mode != 'normal':
             h = h.view(-1, r.shape[0], h.shape[-1])
             t = t.view(-1, r.shape[0], t.shape[-1])
@@ -77,7 +74,7 @@ class MMTransH(Model):
             score = h + (r - t)
         else:
             score = (h + r) - t
-        score = torch.norm(score, self.p_norm, -1).flatten()
+        score = torch.norm(score, self.p_norm, dim=-1).flatten()
         return score
 
     def forward(self, data, batch_size, neg_mode='normal', neg_num=1):
@@ -85,11 +82,6 @@ class MMTransH(Model):
         batch_t = data['batch_t']
         batch_r = data['batch_r']
         norm = self.norm_vector(batch_r)
-        h = self.ent_embeddings(batch_h)
-        t = self.ent_embeddings(batch_t)
-        h = self._project(h, norm)
-        t = self._project(t, norm)
-        r = self.rel_embeddings(batch_r)
         
         if neg_mode == "adaptive":
             mode = data['mode']
@@ -97,22 +89,17 @@ class MMTransH(Model):
             r_neg = batch_r[batch_size:].detach()
             h_neg = self.ent_embeddings(h_img_neg)
             t_neg = self.ent_embeddings(t_img_neg)
-            r_neg = self.rel_embeddings(r_neg)
-
-
             h_neg = self._project(h_neg, self.norm_vector(r_neg))
             t_neg = self._project(t_neg, self.norm_vector(r_neg))
-            
-
+            r_neg = self.rel_embeddings(r_neg)
             h_img_ent_emb = self.img_proj(self.img_embeddings(h_img_neg))
             t_img_ent_emb = self.img_proj(self.img_embeddings(t_img_neg))
-            
             h_img_ent_emb = self._project(h_img_ent_emb, self.norm_vector(r_neg))
             t_img_ent_emb = self._project(t_img_ent_emb, self.norm_vector(r_neg))
-            neg_score1 = self._calc(h_neg, t_neg, r_neg, mode) + self._calc(h_img_ent_emb, t_img_ent_emb, r_neg, mode)
+            neg_score1 = self._calc(h_neg, t_neg, r_neg, self.norm_vector(r_neg), mode) + self._calc(h_img_ent_emb, t_img_ent_emb, r_neg, self.norm_vector(r_neg), mode)
             neg_score2 = (
-                self._calc(h_img_ent_emb, t_neg, r_neg, mode)
-                    + self._calc(h_neg, t_img_ent_emb, r_neg, mode)
+                self._calc(h_img_ent_emb, t_neg, r_neg, self.norm_vector(r_neg), mode)
+                    + self._calc(h_neg, t_img_ent_emb, r_neg, self.norm_vector(r_neg), mode)
             )
             selector = (neg_score2 < neg_score1).int()
             img_idx = torch.nonzero(selector).reshape((-1, ))
@@ -141,18 +128,17 @@ class MMTransH(Model):
         h = self.ent_embeddings(h_ent)
         t = self.ent_embeddings(t_ent)
         r = self.rel_embeddings(batch_r)
-        h = self._project(h, self.norm_vector(batch_r))
-        t = self._project(t, self.norm_vector(batch_r))
         h_img_emb = self.img_proj(self.img_embeddings(h_img))
         t_img_emb = self.img_proj(self.img_embeddings(t_img))
-        h_img_emb = self._project(h_img_emb, self.norm_vector(batch_r))
-        t_img_emb = self._project(t_img_emb, self.norm_vector(batch_r))
-        
+        h = self._project(h, norm)
+        t = self._project(t, norm)
+        h_img_emb = self._project(h_img_emb, norm)
+        t_img_emb = self._project(t_img_emb, norm)
         score = (
-                self._calc(h, t, r, mode)
-                + self._calc(h_img_emb, t_img_emb, r, mode)
-                + self._calc(h_img_emb, t, r, mode)
-                + self._calc(h, t_img_emb, r, mode)
+                self._calc(h, t, r, norm, mode)
+                + self._calc(h_img_emb, t_img_emb, r, norm, mode)
+                + self._calc(h_img_emb, t, r, norm, mode)
+                + self._calc(h, t_img_emb, r, norm, mode)
         )
         if self.margin_flag:
             return self.margin - score
