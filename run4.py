@@ -1,7 +1,7 @@
 import torch
 import mmns
 from mmns.config import Trainer, Tester
-from mmns.module.model import MMTransH
+from mmns.module.model import MMTransR
 from mmns.module.loss import MarginLoss
 from mmns.module.strategy import NegativeSampling
 from mmns.data import TrainDataLoader, TestDataLoader
