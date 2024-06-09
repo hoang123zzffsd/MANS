@@ -6,7 +6,7 @@ from .Model import Model
 
 class MMTransR(Model):
 
-    def __init__(self, ent_tot, rel_tot, dim=100, p_norm=1, img_emb=None,
+    def __init__(self, ent_tot, rel_tot, dim=100, p_norm=2, img_emb=None,
                  img_dim=4096, norm_flag=True, margin=None, epsilon=None,
                  test_mode='lp', beta=None):
         super(MMTransR, self).__init__(ent_tot, rel_tot)
@@ -61,6 +61,7 @@ class MMTransR(Model):
     def _transfer(self, e, r_transfer):
         e = e.view(-1, 1, self.dim)
         r_transfer = r_transfer.view(-1, self.dim, self.dim)
+        r_transfer = r_transfer.expand(e.size(0), -1, -1)
         e = torch.bmm(e, r_transfer)
         return e.view(-1, self.dim)
 
@@ -157,7 +158,7 @@ class MMTransR(Model):
         regul = (torch.mean(h ** 2) +
                  torch.mean(t ** 2) +
                  torch.mean(r ** 2) +
-                 torch.mean(r_transfer ** 2)) / 4
+                 torch.mean(r_transfer ** 2)) / 3
         return regul
 
     def cross_modal_score_ent2img(self, data):
@@ -197,6 +198,13 @@ class MMTransR(Model):
         h_img_emb = self.img_proj(self.img_embeddings(head))
         t_img_emb = self.img_proj(self.img_embeddings(tail))
         relations = self.rel_embeddings.weight
-        rel_transfer = self.rel_transfer.weight
         h = h_img_emb.reshape(-1, h_img_emb.shape[0]).expand((relations.shape[0], h_img_emb.shape[0]))
-        t = t
+        t = t_img_emb.reshape(-1, t_img_emb.shape[0]).expand((relations.shape[0], t_img_emb.shape[0]))
+        scores = self._calc(h, t, relations, mode='normal')
+        ranks = torch.argsort(scores)
+        rank = 0
+        for (index, val) in enumerate(ranks):
+            if val.item() == rel.item():
+                rank = index
+                break
+        return rank + 1
