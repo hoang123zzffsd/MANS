@@ -26,7 +26,7 @@ if __name__ == "__main__":
     # dataloader for test
     test_dataloader = TestDataLoader("/content/MANS/benchmarks/" + args.dataset + '/', "link")
     img_emb = torch.load('/content/MANS/visual/' + args.dataset + '.pth')
-    if args.kernel == 'transh':
+    if args.kernel == 'transr':
         # define the model
         transr = MMTransR(
             ent_tot=train_dataloader.get_ent_tot(),
