@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from .Model import Model
 
 class MMTransH(Model):
-    def __init__(self, ent_tot, rel_tot, dim=100, p_norm=1, img_emb=None,
+    def __init__(self, ent_tot, rel_tot, dim=100, p_norm=2, img_emb=None,
                  img_dim=4096, norm_flag=True, margin=None, epsilon=None,
                  test_mode='lp', beta=None):
         super(MMTransH, self).__init__(ent_tot, rel_tot)
