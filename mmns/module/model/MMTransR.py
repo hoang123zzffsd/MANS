@@ -98,10 +98,13 @@ class MMTransR(Model):
             r_neg = batch_r[batch_size:].detach()
             h_neg = self.ent_embeddings(h_img_neg)
             t_neg = self.ent_embeddings(t_img_neg)
-            r_neg = self.rel_embeddings(r_neg)
+            
             r_transfer_neg = self.rel_transfer(r_neg)
             h_img_ent_emb = self.img_proj(self.img_embeddings(h_img_neg))
             t_img_ent_emb = self.img_proj(self.img_embeddings(t_img_neg))
+
+            r_neg = self.rel_embeddings(r_neg)
+            
             neg_score1 = self._calc(h_neg, t_neg, r_neg, r_transfer_neg, mode) + self._calc(h_img_ent_emb, t_img_ent_emb, r_neg, r_transfer_neg, mode)
             neg_score2 = (
                 self._calc(h_img_ent_emb, t_neg, r_neg, r_transfer_neg, mode)
