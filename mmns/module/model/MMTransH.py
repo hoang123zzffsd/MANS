@@ -83,23 +83,33 @@ class MMTransH(Model):
         batch_r = data['batch_r']
         norm = self.norm_vector(batch_r)
         
+        
         if neg_mode == "adaptive":
             mode = data['mode']
             h_img_neg, t_img_neg = batch_h[batch_size:].detach(), batch_t[batch_size:].detach()
             r_neg = batch_r[batch_size:].detach()
             h_neg = self.ent_embeddings(h_img_neg)
             t_neg = self.ent_embeddings(t_img_neg)
+
+
+            norm_r_neg=self.norm_vector(r_neg)
+
+
+
             h_neg = self._project(h_neg, self.norm_vector(r_neg))
             t_neg = self._project(t_neg, self.norm_vector(r_neg))
-            r_neg = self.rel_embeddings(r_neg)
+            
             h_img_ent_emb = self.img_proj(self.img_embeddings(h_img_neg))
             t_img_ent_emb = self.img_proj(self.img_embeddings(t_img_neg))
             h_img_ent_emb = self._project(h_img_ent_emb, self.norm_vector(r_neg))
             t_img_ent_emb = self._project(t_img_ent_emb, self.norm_vector(r_neg))
-            neg_score1 = self._calc(h_neg, t_neg, r_neg, self.norm_vector(r_neg), mode) + self._calc(h_img_ent_emb, t_img_ent_emb, r_neg, self.norm_vector(r_neg), mode)
+
+            r_neg = self.rel_embeddings(r_neg)
+
+            neg_score1 = self._calc(h_neg, t_neg, r_neg, norm_r_neg, mode) + self._calc(h_img_ent_emb, t_img_ent_emb, r_neg, norm_r_neg, mode)
             neg_score2 = (
-                self._calc(h_img_ent_emb, t_neg, r_neg, self.norm_vector(r_neg), mode)
-                    + self._calc(h_neg, t_img_ent_emb, r_neg, self.norm_vector(r_neg), mode)
+                self._calc(h_img_ent_emb, t_neg, r_neg, norm_r_neg, mode)
+                    + self._calc(h_neg, t_img_ent_emb, r_neg, norm_r_neg, mode)
             )
             selector = (neg_score2 < neg_score1).int()
             img_idx = torch.nonzero(selector).reshape((-1, ))
@@ -108,6 +118,7 @@ class MMTransH(Model):
             h_ent, h_img, t_ent, t_img = batch_h.clone(), batch_h.clone(), batch_t.clone(), batch_t.clone()
             h_ent[batch_size: batch_size + num] = batch_h[0: num].clone()
             t_ent[batch_size: batch_size + num] = batch_t[0: num].clone()
+
         else:
             num = int(neg_num * self.beta * batch_size) if batch_size != None else 0
             h_ent, h_img, t_ent, t_img = None, None, None, None
@@ -125,6 +136,7 @@ class MMTransH(Model):
                     t_ent[batch_size: batch_size + num] = batch_t[0: num].clone()
         
         mode = data['mode']
+        
         h = self.ent_embeddings(h_ent)
         t = self.ent_embeddings(t_ent)
         r = self.rel_embeddings(batch_r)
